@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Calculator Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- Dark Mode Variables & Reset --- */
+        :root {
+            /* Default Theme (Salaried - Green) */
+            --primary: #10b981; /* Emerald 500 */
+            --primary-dark: #059669; /* Emerald 600 */
+            --primary-glow: rgba(16, 185, 129, 0.4);
+            --primary-bg-subtle: rgba(16, 185, 129, 0.1);
+
+            /* Dark Theme Palette */
+            --bg-body: #0f172a; /* Slate 900 */
+            --bg-card: #1e293b; /* Slate 800 */
+            --bg-input: #020617; /* Slate 950 */
+            
+            --text-main: #f1f5f9; /* Slate 100 */
+            --text-secondary: #94a3b8; /* Slate 400 */
+            --text-muted: #64748b; /* Slate 500 */
+            
+            --border: #334155; /* Slate 700 */
+            
+            --danger: #f43f5e; /* Rose 500 */
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+            
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-full: 9999px;
+        }
+
+        /* Business Theme Overrides (Applied via JS) */
+        body.theme-business {
+            --primary: #3b82f6; /* Blue 500 */
+            --primary-dark: #2563eb; /* Blue 600 */
+            --primary-glow: rgba(59, 130, 246, 0.4);
+            --primary-bg-subtle: rgba(59, 130, 246, 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* --- Layout --- */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            width: 100%;
+        }
+
+        /* --- Header --- */
+        header {
+            background: rgba(15, 23, 42, 0.8); /* Semi-transparent dark */
+            border-bottom: 1px solid var(--border);
+            padding: 1.25rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(12px);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand svg {
+            color: var(--primary);
+            transition: color 0.3s ease;
+        }
+
+        /* --- Main --- */
+        main {
+            padding-top: 3rem;
+            padding-bottom: 4rem;
+            flex: 1;
+        }
+
+        .hero-text {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .hero-text h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.03em;
+            background: linear-gradient(to right, #fff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-text p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* --- Calculator Card --- */
+        .calc-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            margin-bottom: 3rem;
+            transition: transform 0.3s ease;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Pill Toggle */
+        .toggle-wrapper {
+            display: flex;
+            background: var(--bg-input);
+            padding: 0.35rem;
+            border-radius: var(--radius-full);
+            margin-bottom: 2rem;
+            position: relative;
+            border: 1px solid var(--border);
+        }
+
+        .toggle-option {
+            flex: 1;
+            text-align: center;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            z-index: 2;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+            font-size: 0.95rem;
+            position: relative;
+            user-select: none;
+        }
+
+        .toggle-option input { display: none; }
+
+        /* Moving Background for Toggle */
+        .toggle-bg {
+            position: absolute;
+            top: 0.35rem;
+            bottom: 0.35rem;
+            left: 0.35rem;
+            width: calc(50% - 0.35rem);
+            background: var(--bg-card); /* Matches card, but elevated */
+            background: #334155; /* Slightly lighter highlight */
+            border-radius: var(--radius-full);
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            z-index: 1;
+        }
+
+        /* Active State Logic */
+        #t-business:checked ~ .toggle-bg {
+            transform: translateX(100%);
+        }
+
+        .toggle-option input:checked + span {
+            color: #fff;
+        }
+
+        /* Input Field */
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .label-text {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .currency-icon {
+            position: absolute;
+            left: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-weight: 600;
+            pointer-events: none;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 1.25rem 1.25rem 1.25rem 3.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            outline: none;
+            background: var(--bg-input);
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-bg-subtle);
+        }
+        
+        input[type="number"]::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Action Button */
+        .btn-calculate {
+            width: 100%;
+            background: var(--primary);
+            color: #ffffff;
+            font-size: 1.125rem;
+            font-weight: 600;
+            padding: 1rem;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 0 20px var(--primary-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-calculate:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+        
+        .btn-calculate:active {
+            transform: translateY(0);
+        }
+
+        .btn-reset {
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border: none;
+            cursor: pointer;
+            margin-top: 1rem;
+            width: 100%;
+            transition: color 0.2s;
+            display: none;
+        }
+        
+        .btn-reset:hover {
+            color: var(--text-main);
+            text-decoration: underline;
+        }
+
+        /* --- Results Section --- */
+        .results-container {
+            display: none;
+            margin-top: 2rem;
+        }
+        
+        .results-container.active {
+            display: block;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        /* Result Card Styling */
+        .res-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            grid-column: span 12;
+            position: relative;
+            overflow: hidden; /* Keeps content inside */
+        }
+
+        @media (min-width: 640px) {
+            .res-card { grid-column: span 6; }
+        }
+        @media (min-width: 1024px) {
+            .res-card { grid-column: span 3; }
+        }
+
+        .res-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary);
+        }
+
+        /* Hero Card (Monthly Take Home) */
+        .res-card.hero {
+            grid-column: span 12;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: white;
+            border: none;
+            box-shadow: 0 10px 30px -10px var(--primary-glow);
+            text-align: center;
+            padding: 2.5rem 1.5rem;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .res-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .hero .res-label {
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 1rem;
+        }
+
+        .res-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-main);
+            /* Overflow Logic */
+            word-break: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.2;
+        }
+
+        .hero .res-value {
+            font-size: 3.5rem;
+            color: white;
+            line-height: 1.1;
+        }
+
+        .hero .res-sub {
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+        }
+
+        /* Donut Chart Card */
+        .res-card.chart-card {
+            grid-column: span 12;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 2rem;
+        }
+        @media (min-width: 1024px) {
+            .res-card.chart-card { grid-column: span 6; }
+        }
+
+        .donut-wrapper {
+            position: relative;
+            width: 180px;
+            height: 180px;
+        }
+        
+        .donut-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        .donut-percent {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1;
+        }
+        
+        .donut-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-main);
+            font-weight: 500;
+        }
+        
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .dot.tax { background: var(--danger); }
+        .dot.net { background: var(--primary); }
+
+        /* Slab Info Badge */
+        .slab-badge {
+            grid-column: span 12;
+            background: var(--primary-bg-subtle);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            text-align: center;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            border: 1px solid var(--primary);
+            margin-bottom: 2rem;
+        }
+        
+        .slab-badge strong { color: var(--primary); }
+
+        /* --- Progressive Graph & Explanations --- */
+        .graph-section {
+            grid-column: span 12;
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 3rem;
+        }
+        
+        .section-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            max-width: 700px;
+        }
+
+        /* Graph SVG Styles */
+        .axis-line { stroke: var(--border); stroke-width: 1; }
+        .axis-text { fill: var(--text-secondary); font-size: 11px; font-family: 'Inter', sans-serif; }
+        .chart-line { fill: none; stroke: var(--text-secondary); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; opacity: 0.3; }
+        .chart-line.active-curve { stroke: var(--primary); opacity: 1; }
+        .guide-line { stroke: var(--text-muted); stroke-width: 1; stroke-dasharray: 4,4; opacity: 0.3; }
+        
+        .user-dot-outer { fill: var(--primary); opacity: 0.3; }
+        .user-dot-inner { fill: var(--bg-body); stroke: var(--primary); stroke-width: 3; }
+        .user-label { fill: var(--primary); font-size: 12px; font-weight: 700; }
+
+        /* --- Table --- */
+        .table-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        
+        th {
+            background: var(--bg-input);
+            padding: 1rem 1.5rem;
+            text-align: left;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255,255,255,0.03); }
+
+        /* --- Explanation Block --- */
+        .explainer-block {
+            background: var(--bg-input);
+            border-left: 4px solid var(--primary);
+            padding: 1.5rem;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            margin-top: 2rem;
+        }
+
+        .explainer-title {
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .explainer-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+        
+        .explainer-text strong { color: var(--text-main); }
+        
+        .explainer-list {
+            padding-left: 1.2rem;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        
+        .explainer-list li { margin-bottom: 0.5rem; }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-top: auto;
+            border-top: 1px solid var(--border);
+            background: var(--bg-input);
+        }
+
+        /* --- Animations --- */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 640px) {
+            .hero .res-value { font-size: 2.5rem; }
+            .calc-card { padding: 1.5rem; }
+            .hero-text h2 { font-size: 2rem; }
+            input[type="number"] { font-size: 1.25rem; }
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/"
+  }
+}
+</script>
+</head>
+<body class="theme-salaried">
+
+    <header>
+        <div class="container header-content">
+            <div class="brand">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                Tax Calculator Pro
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="hero-text">
+            <h2>Estimate Your Tax</h2>
+            <p>Optimized for Pakistan Finance Act 2024-2025</p>
+        </div>
+
+        <!-- Calculator Input Card -->
+        <div class="calc-card">
+            <form id="taxForm">
+                <!-- Animated Toggle -->
+                <div class="toggle-wrapper">
+                    <label class="toggle-option">
+                        <input type="radio" name="taxType" id="t-salaried" value="salaried" checked>
+                        <span>Salaried</span>
+                    </label>
+                    <label class="toggle-option">
+                        <input type="radio" name="taxType" id="t-business" value="business">
+                        <span>Business</span>
+                    </label>
+                    <div class="toggle-bg"></div>
+                </div>
+
+                <div class="input-group">
+                    <label for="salary" class="label-text" id="incomeLabel">Monthly Salary</label>
+                    <div class="input-wrapper">
+                        <span class="currency-icon">Rs.</span>
+                        <input type="number" id="salary" placeholder="0" min="0" required inputmode="numeric">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-calculate">
+                    Calculate Tax
+                </button>
+                
+                <button type="button" id="resetBtn" class="btn-reset">Start Over</button>
+            </form>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="results-container">
+            
+            <div class="results-grid">
+                <!-- Hero Card -->
+                <div class="res-card hero">
+                    <div class="res-label">Monthly Take-Home</div>
+                    <div class="res-value" id="res-monthly-takehome">-</div>
+                    <div class="res-sub">Net income after tax deduction</div>
+                </div>
+
+                <!-- Chart Card -->
+                <div class="res-card chart-card">
+                    <div class="donut-wrapper" id="donut-container">
+                        <!-- Donut SVG injected here -->
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item"><span class="dot net"></span> Net Pay</div>
+                        <div class="legend-item"><span class="dot tax"></span> Tax</div>
+                    </div>
+                </div>
+
+                <!-- Data Cards -->
+                <div class="res-card">
+                    <div class="res-label">Monthly Tax</div>
+                    <div class="res-value" id="res-monthly-tax">-</div>
+                </div>
+                <div class="res-card">
+                    <div class="res-label">Annual Tax</div>
+                    <div class="res-value" id="res-annual-tax">-</div>
+                </div>
+                <div class="res-card">
+                    <div class="res-label">Annual Income</div>
+                    <div class="res-value" id="res-annual-salary">-</div>
+                </div>
+                <div class="res-card">
+                    <div class="res-label">Effective Tax Rate</div>
+                    <div class="res-value" id="res-tax-rate">-</div>
+                </div>
+
+            </div>
+            
+            <!-- Slab Info -->
+            <div class="slab-badge">
+                <span id="res-slab-info">Calculating...</span>
+            </div>
+
+            <!-- Progressive Graph -->
+            <div class="graph-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                        Visualizing the Curve
+                    </div>
+                    <p class="section-desc" id="graph-desc">
+                        Your income is marked on the curve below. As you earn more, you move into higher tax brackets, increasing your effective tax rate.
+                    </p>
+                </div>
+                
+                <div id="chart-container">
+                    <!-- SVG rendered here -->
+                </div>
+
+                <!-- Explanation Block -->
+                <div class="explainer-block">
+                    <h4 class="explainer-title">How is this calculated?</h4>
+                    <p class="explainer-text" id="explainer-text">
+                        <!-- Populated by JS -->
+                    </p>
+                    <ul class="explainer-list">
+                        <li>Tax is calculated on <strong>Annual Income</strong>.</li>
+                        <li>The result is divided by 12 for monthly deductions.</li>
+                        <li>This follows the <strong>Progressive Tax</strong> model (higher income = higher % rate).</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Reference Table -->
+            <div class="table-card">
+                <div style="padding: 1.5rem; border-bottom: 1px solid var(--border); background: var(--bg-input);">
+                    <h3 style="font-size: 1rem; font-weight: 600; color: var(--text-main);" id="table-title">Tax Slabs</h3>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Annual Income Range</th>
+                                <th>Tax Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody id="slabs-table-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer>
+        &copy; 2024 Tax Calculator Pro. Designed for clarity.
+    </footer>
+
+    <script>
+        /* --- Data & Logic --- */
+        
+        // State Management
+        let currentType = 'salaried';
+        let incomeState = {
+            salaried: '',
+            business: ''
+        };
+
+        // 2024-2025 Salaried Slabs
+        const salariedSlabs = [
+            { limit: 600000, rate: 0, base: 0, prevLimit: 0, desc: "Up to 600k: Exempt" },
+            { limit: 1200000, rate: 0.05, base: 0, prevLimit: 600000, desc: "5% excess over 600k" },
+            { limit: 2200000, rate: 0.15, base: 30000, prevLimit: 1200000, desc: "30k + 15% excess over 1.2M" },
+            { limit: 3200000, rate: 0.25, base: 180000, prevLimit: 2200000, desc: "180k + 25% excess over 2.2M" },
+            { limit: 4100000, rate: 0.30, base: 430000, prevLimit: 3200000, desc: "430k + 30% excess over 3.2M" },
+            { limit: Infinity, rate: 0.35, base: 700000, prevLimit: 4100000, desc: "700k + 35% excess over 4.1M" }
+        ];
+
+        // 2024-2025 Business Slabs
+        const businessSlabs = [
+            { limit: 600000, rate: 0, base: 0, prevLimit: 0, desc: "Up to 600k: Exempt" },
+            { limit: 1200000, rate: 0.15, base: 0, prevLimit: 600000, desc: "15% excess over 600k" },
+            { limit: 1600000, rate: 0.20, base: 90000, prevLimit: 1200000, desc: "90k + 20% excess over 1.2M" },
+            { limit: 3200000, rate: 0.30, base: 170000, prevLimit: 1600000, desc: "170k + 30% excess over 1.6M" },
+            { limit: 5600000, rate: 0.40, base: 650000, prevLimit: 3200000, desc: "650k + 40% excess over 3.2M" },
+            { limit: Infinity, rate: 0.45, base: 1610000, prevLimit: 5600000, desc: "1.61M + 45% excess over 5.6M" }
+        ];
+
+        // Calc Logic
+        const calculateTax = (monthlyIncome) => {
+            const annualIncome = monthlyIncome * 12;
+            const slabs = currentType === 'salaried' ? salariedSlabs : businessSlabs;
+            
+            let annualTax = 0;
+            let slabDesc = "";
+            
+            const slab = slabs.find(s => annualIncome <= s.limit) || slabs[slabs.length - 1];
+            
+            if (slab.rate > 0) {
+                annualTax = slab.base + (annualIncome - slab.prevLimit) * slab.rate;
+            }
+            slabDesc = slab.desc;
+
+            const monthlyTax = annualTax / 12;
+
+            return {
+                annualIncome,
+                annualTax,
+                monthlyTax,
+                annualTakeHome: annualIncome - annualTax,
+                monthlyTakeHome: monthlyIncome - monthlyTax,
+                slabDesc
+            };
+        };
+
+        // Formatters
+        const formatCurrency = (num) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(num);
+        const formatShort = (num) => {
+            if (num >= 1000000) return (num/1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num/1000).toFixed(0) + 'k';
+            return num;
+        };
+
+        // --- Theme Logic ---
+        const updateTheme = () => {
+            const body = document.body;
+            if (currentType === 'business') {
+                body.classList.remove('theme-salaried');
+                body.classList.add('theme-business');
+                document.getElementById('incomeLabel').innerText = "Monthly Business Income";
+            } else {
+                body.classList.remove('theme-business');
+                body.classList.add('theme-salaried');
+                document.getElementById('incomeLabel').innerText = "Monthly Salary";
+            }
+        }
+
+        // --- Renderers ---
+
+        const updateExplanations = () => {
+            const textEl = document.getElementById('explainer-text');
+            if (currentType === 'salaried') {
+                textEl.innerHTML = `
+                    For <strong>Salaried Individuals</strong>, tax is applied on your gross salary.
+                    The government defines income slabs; you pay a fixed amount for the base of your slab, plus a percentage of the amount exceeding that base.
+                `;
+            } else {
+                textEl.innerHTML = `
+                    For <strong>Business Owners & Freelancers</strong> (Non-Salaried), tax is applied on net profit.
+                    Note that business tax rates are generally higher than salaried rates, especially in higher income brackets, and slabs differ significantly.
+                `;
+            }
+        };
+
+        const renderTable = () => {
+            const tbody = document.getElementById('slabs-table-body');
+            const slabs = currentType === 'salaried' ? salariedSlabs : businessSlabs;
+            document.getElementById('table-title').innerText = currentType === 'salaried' ? "Salaried Tax Slabs" : "Business Tax Slabs";
+            
+            let html = "";
+            slabs.forEach(s => {
+                const range = s.limit === Infinity 
+                    ? `Above ${formatShort(s.prevLimit)}` 
+                    : `${formatShort(s.prevLimit+1)} - ${formatShort(s.limit)}`;
+                
+                let rateText = "0%";
+                if (s.rate > 0) {
+                    rateText = `${(s.rate * 100).toFixed(0)}%`;
+                    if (s.base > 0) rateText = `${s.base.toLocaleString()} + ` + rateText;
+                }
+
+                html += `<tr><td>${range}</td><td>${rateText}</td></tr>`;
+            });
+            tbody.innerHTML = html;
+        };
+
+        const renderDonut = (tax, total) => {
+            const container = document.getElementById('donut-container');
+            if(total <= 0) return;
+            
+            const taxPercent = (tax / total) * 100;
+            const netPercent = 100 - taxPercent;
+            
+            const dashArray = `${taxPercent}, 100`;
+            
+            // Dynamic colors based on theme
+            const colorTax = '#f43f5e'; 
+            const colorNet = currentType === 'salaried' ? '#10b981' : '#3b82f6'; 
+            
+            container.innerHTML = `
+                <svg viewBox="0 0 36 36" class="donut-chart" style="width:100%; height:100%; transform: rotate(-90deg);">
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="${colorNet}" stroke-width="3.5" />
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="${colorTax}" stroke-width="3.5" stroke-dasharray="${dashArray}" />
+                </svg>
+                <div class="donut-text">
+                    <div class="donut-percent">${netPercent.toFixed(1)}%</div>
+                    <div class="donut-label">Net Pay</div>
+                </div>
+            `;
+        };
+
+        const renderGraph = (income, tax) => {
+            const wrapper = document.getElementById('chart-container');
+            const slabs = currentType === 'salaried' ? salariedSlabs : businessSlabs;
+            
+            const maxInc = Math.max(income * 1.25, currentType === 'salaried' ? 4500000 : 6000000);
+            
+            const getTax = (inc) => {
+                 const s = slabs.find(sl => inc <= sl.limit) || slabs[slabs.length - 1];
+                 if (s.rate === 0) return 0;
+                 return s.base + (inc - s.prevLimit) * s.rate;
+            };
+
+            const maxTax = getTax(maxInc);
+            
+            const w = 800, h = 350;
+            const pad = { t: 20, r: 40, b: 30, l: 50 };
+            const plotW = w - pad.l - pad.r;
+            const plotH = h - pad.t - pad.b;
+
+            const toX = (v) => pad.l + (v / maxInc) * plotW;
+            const toY = (v) => pad.t + plotH - (v / maxTax) * plotH;
+
+            let pts = [0, ...slabs.map(s => s.limit === Infinity ? s.prevLimit : s.limit), maxInc];
+            pts = pts.filter(p => p <= maxInc).sort((a,b)=>a-b);
+            pts = [...new Set(pts)];
+            if(pts[pts.length-1] < maxInc) pts.push(maxInc);
+
+            let d = `M ${toX(0)} ${toY(0)}`;
+            
+            pts.forEach(p => {
+                const t = getTax(p);
+                d += ` L ${toX(p)} ${toY(t)}`;
+            });
+            
+            const ux = toX(income);
+            const uy = toY(tax);
+            
+            // Theme color in JS
+            const themeColor = currentType === 'salaried' ? '#10b981' : '#3b82f6';
+
+            wrapper.innerHTML = `
+                <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" style="overflow: visible;">
+                    <defs>
+                        <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stop-color="${themeColor}" stop-opacity="0.2"/>
+                            <stop offset="100%" stop-color="${themeColor}" stop-opacity="1"/>
+                        </linearGradient>
+                    </defs>
+                    <line x1="${pad.l}" y1="${h-pad.b}" x2="${w-pad.r}" y2="${h-pad.b}" class="axis-line"/>
+                    <line x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${h-pad.b}" class="axis-line"/>
+                    
+                    <text x="${pad.l - 8}" y="${pad.t + 10}" text-anchor="end" class="axis-text">${formatShort(maxTax)}</text>
+                    <text x="${pad.l - 8}" y="${h - pad.b}" text-anchor="end" class="axis-text">0</text>
+                    <text x="${w - pad.r}" y="${h - pad.b + 20}" text-anchor="middle" class="axis-text">${formatShort(maxInc)}</text>
+                    
+                    <path d="${d}" class="chart-line active-curve" stroke="url(#lineGradient)" />
+                    
+                    <line x1="${pad.l}" y1="${uy}" x2="${ux}" y2="${uy}" class="guide-line" />
+                    <line x1="${ux}" y1="${h-pad.b}" x2="${ux}" y2="${uy}" class="guide-line" />
+
+                    <circle cx="${ux}" cy="${uy}" r="8" fill="${themeColor}" opacity="0.3">
+                        <animate attributeName="r" values="8;16;8" dur="2s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx="${ux}" cy="${uy}" r="5" fill="#0f172a" stroke="${themeColor}" stroke-width="3" />
+                    
+                    <text x="${ux + 10}" y="${uy - 10}" fill="${themeColor}" font-weight="bold" font-size="12">You</text>
+                </svg>
+            `;
+        };
+
+
+        // --- Event Handling ---
+
+        const form = document.getElementById('taxForm');
+        const inputs = document.getElementsByName('taxType');
+        const salaryInput = document.getElementById('salary');
+        const resetBtn = document.getElementById('resetBtn');
+        const resultsDiv = document.getElementById('results');
+
+        // Input state tracker
+        salaryInput.addEventListener('input', (e) => {
+            incomeState[currentType] = e.target.value;
+        });
+
+        // Toggle Handler
+        inputs.forEach(input => {
+            input.addEventListener('change', (e) => {
+                currentType = e.target.value;
+                
+                updateTheme();
+                
+                // Swap Input Value
+                salaryInput.value = incomeState[currentType];
+                
+                // Rerender static info
+                updateExplanations();
+                renderTable();
+
+                // Trigger calculation automatically if value exists
+                if (salaryInput.value) {
+                    form.dispatchEvent(new Event('submit'));
+                } else {
+                     resultsDiv.classList.remove('active');
+                }
+            });
+        });
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const val = parseFloat(salaryInput.value);
+            if (isNaN(val) || val < 0) return;
+
+            const data = calculateTax(val);
+
+            // Update UI
+            document.getElementById('res-monthly-takehome').innerText = formatCurrency(data.monthlyTakeHome);
+            document.getElementById('res-monthly-tax').innerText = formatCurrency(data.monthlyTax);
+            document.getElementById('res-annual-tax').innerText = formatCurrency(data.annualTax);
+            document.getElementById('res-annual-salary').innerText = formatCurrency(data.annualIncome);
+            document.getElementById('res-slab-info').innerHTML = `Applied Slab: <strong>${data.slabDesc}</strong>`;
+            
+            const rate = data.annualIncome > 0 ? ((data.annualTax / data.annualIncome)*100).toFixed(2) + '%' : '0%';
+            document.getElementById('res-tax-rate').innerText = rate;
+
+            // Show & Animate
+            resultsDiv.classList.remove('active');
+            void resultsDiv.offsetWidth; // trigger reflow
+            resultsDiv.classList.add('active');
+            resetBtn.style.display = 'inline-block';
+            
+            // Draw Visuals
+            renderGraph(data.annualIncome, data.annualTax);
+            renderDonut(data.annualTax, data.annualIncome);
+            
+            // Scroll on mobile
+            if(window.innerWidth < 640) {
+                setTimeout(() => resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            // Clear ONLY current state
+            incomeState[currentType] = '';
+            salaryInput.value = '';
+            
+            resultsDiv.classList.remove('active');
+            resetBtn.style.display = 'none';
+            salaryInput.focus();
+        });
+
+        // Init
+        updateExplanations();
+        renderTable();
+
+    </script>
+</body>
+</html>
