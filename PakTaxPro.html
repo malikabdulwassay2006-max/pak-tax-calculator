@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PakTax Pro - Pakistan Income Tax Calculator 2024-25</title>
+<style>
+:root{--primary:#059669;--primary-hover:#047857;--primary-light:#d1fae5;--bg-color:#f8fafc;--card-bg:#ffffff;--text-main:#0f172a;--text-muted:#64748b;--border-color:#e2e8f0;--shadow:0 1px 3px 0 rgb(0 0 0 / 0.1),0 1px 2px -1px rgb(0 0 0 / 0.1);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background-color:var(--bg-color);color:var(--text-main);line-height:1.5;padding-bottom:2rem;}
+.container{max-width:960px;margin:0 auto;padding:0 1rem;}
+header{background:var(--card-bg);border-bottom:1px solid var(--border-color);padding:1rem 0;position:sticky;top:0;z-index:10;box-shadow:0 1px 2px rgba(0,0,0,0.05);}
+.header-content{display:flex;justify-content:space-between;align-items:center;}
+.logo{font-size:1.25rem;font-weight:700;display:flex;align-items:center;gap:0.5rem;}
+.logo span{color:var(--primary);}
+.badge{font-size:0.75rem;background-color:var(--primary-light);color:var(--primary-hover);padding:0.25rem 0.75rem;border-radius:9999px;font-weight:600;border:1px solid #a7f3d0;}
+.hero{text-align:center;padding:3rem 0 2rem;}
+.hero h1{font-size:2.25rem;font-weight:800;margin-bottom:1rem;color:var(--text-main);}
+.hero p{color:var(--text-muted);max-width:600px;margin:0 auto;font-size:1.125rem;}
+.card{background:var(--card-bg);border-radius:1rem;border:1px solid var(--border-color);box-shadow:var(--shadow);padding:2rem;margin-bottom:2rem;}
+.form-group{margin-bottom:1.5rem;max-width:500px;margin-left:auto;margin-right:auto;}
+label{display:block;font-weight:500;margin-bottom:0.5rem;color:var(--text-main);}
+.input-wrapper{position:relative;}
+.currency-symbol{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-weight:500;}
+input[type="number"]{width:100%;padding:1rem 1rem 1rem 3rem;font-size:1.125rem;border:1px solid #cbd5e1;border-radius:0.75rem;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+input[type="number"]:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light);}
+.btn-group{display:flex;gap:1rem;max-width:500px;margin:0 auto;}
+button{cursor:pointer;padding:1rem 1.5rem;border-radius:0.75rem;font-size:1rem;font-weight:600;border:none;transition:all 0.2s;display:inline-flex;align-items:center;justify-content:center;}
+.btn-primary{background-color:var(--primary);color:white;flex:1;box-shadow:0 4px 6px -1px rgba(5,150,105,0.3);}
+.btn-primary:hover{background-color:var(--primary-hover);transform:translateY(-1px);}
+.btn-secondary{background-color:#f1f5f9;color:var(--text-muted);}
+.btn-secondary:hover{background-color:#e2e8f0;color:var(--text-main);}
+.results-section{display:none;animation:fadeInUp 0.5s ease-out;}
+.results-section.visible{display:block;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin-bottom:2rem;}
+.result-card{background:white;padding:1.25rem;border-radius:1rem;border:1px solid var(--border-color);box-shadow:var(--shadow);}
+.result-card.highlight{background-color:var(--primary);border-color:var(--primary-hover);color:white;}
+.result-label{font-size:0.875rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:0.5rem;font-weight:600;}
+.highlight .result-label{color:var(--primary-light);}
+.result-value{font-size:1.5rem;font-weight:700;}
+.highlight .result-value{color:white;}
+.result-subtext{font-size:0.75rem;margin-top:0.25rem;color:#94a3b8;}
+.highlight .result-subtext{color:var(--primary-light);}
+.graph-container{background:white;padding:2rem;border-radius:1rem;border:1px solid var(--border-color);box-shadow:var(--shadow);margin-bottom:2rem;position:relative;}
+.graph-header{margin-bottom:1.5rem;font-weight:600;color:var(--text-main);}
+svg{width:100%;height:auto;overflow:visible;}
+.axis-line{stroke:#cbd5e1;stroke-width:1;}
+.tax-curve{fill:none;stroke:var(--primary);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+.guide-line{stroke:#94a3b8;stroke-width:1;stroke-dasharray:4 4;}
+.user-point{fill:white;stroke:#dc2626;stroke-width:3;r:6;}
+.user-point-bg{fill:#dc2626;opacity:0.2;r:12;animation:pulse 2s infinite;}
+.axis-label{font-size:12px;fill:#64748b;}
+.user-label{font-size:12px;fill:#dc2626;font-weight:bold;}
+@keyframes pulse{0%{r:6;opacity:0.4}70%{r:15;opacity:0}100%{r:6;opacity:0}}
+.table-container{background:white;border-radius:1rem;border:1px solid var(--border-color);overflow:hidden;margin-top:2rem;box-shadow:var(--shadow);}
+.table-header{background-color:#f8fafc;padding:1rem 1.5rem;border-bottom:1px solid var(--border-color);font-weight:600;color:var(--text-main);}
+table{width:100%;border-collapse:collapse;font-size:0.875rem;text-align:left;}
+th{background-color:#f8fafc;color:var(--text-muted);font-weight:600;text-transform:uppercase;font-size:0.75rem;padding:0.75rem 1.5rem;border-bottom:1px solid var(--border-color);}
+td{padding:1rem 1.5rem;border-bottom:1px solid var(--border-color);color:var(--text-main);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background-color:#f8fafc;}
+footer{text-align:center;margin-top:3rem;color:var(--text-muted);font-size:0.875rem;padding-top:2rem;border-top:1px solid var(--border-color);}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:640px){.hero h1{font-size:1.75rem}.grid{grid-template-columns:1fr}.btn-group{flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+<div class="container header-content">
+<div class="logo">PakTax<span>Pro</span></div>
+<span class="badge">2024-2025</span>
+</div>
+</header>
+<main class="container">
+<div class="hero">
+<h1>Income Tax Calculator</h1>
+<p>Calculate your tax liability based on Pakistan's Finance Act 2024 for salaried individuals.</p>
+</div>
+<div class="card">
+<form id="taxForm">
+<div class="form-group">
+<label for="salary">Monthly Salary (PKR)</label>
+<div class="input-wrapper">
+<span class="currency-symbol">Rs.</span>
+<input type="number" id="salary" placeholder="e.g. 150000" min="0" required>
+</div>
+</div>
+<div class="btn-group">
+<button type="submit" class="btn-primary">Calculate Tax</button>
+<button type="button" id="resetBtn" class="btn-secondary" style="display:none;">Reset</button>
+</div>
+</form>
+</div>
+<div id="results" class="results-section">
+<div class="grid">
+<div class="result-card highlight" style="grid-column:1/-1;">
+<div class="result-label">Monthly Take-Home</div>
+<div class="result-value" id="res-monthly-takehome">-</div>
+<div class="result-subtext">After tax deduction</div>
+</div>
+<div class="result-card"><div class="result-label">Monthly Tax</div><div class="result-value" id="res-monthly-tax">-</div></div>
+<div class="result-card"><div class="result-label">Annual Tax</div><div class="result-value" id="res-annual-tax">-</div></div>
+<div class="result-card"><div class="result-label">Annual Salary</div><div class="result-value" id="res-annual-salary">-</div></div>
+<div class="result-card"><div class="result-label">Annual Take-Home</div><div class="result-value" id="res-annual-takehome">-</div></div>
+<div class="result-card"><div class="result-label">Effective Tax Rate</div><div class="result-value" id="res-tax-rate">-</div></div>
+</div>
+<div class="card" style="background-color:#f1f5f9;border:none;padding:1.5rem;margin-bottom:2rem;">
+<strong style="color:#334155;">Applicable Slab:</strong> <span id="res-slab-info" style="color:#475569;">-</span>
+</div>
+<div class="graph-container">
+<div class="graph-header">Tax Slab Visualization</div>
+<div id="chart-wrapper" style="width:100%;max-width:800px;margin:0 auto;"></div>
+<div style="text-align:center;font-size:0.75rem;color:#94a3b8;margin-top:1rem;">Graph showing Annual Tax vs Annual Salary</div>
+</div>
+<div class="table-container">
+<div class="table-header">Tax Slabs 2024-2025 (Salaried)</div>
+<div style="overflow-x:auto;">
+<table>
+<thead><tr><th>Annual Income Range (PKR)</th><th>Tax Rate</th></tr></thead>
+<tbody>
+<tr><td>Up to 600,000</td><td>0%</td></tr>
+<tr><td>600,001 - 1,200,000</td><td>5% of excess over 600,000</td></tr>
+<tr><td>1,200,001 - 2,200,000</td><td>30,000 + 15% of excess over 1,200,000</td></tr>
+<tr><td>2,200,001 - 3,200,000</td><td>180,000 + 25% of excess over 2,200,000</td></tr>
+<tr><td>3,200,001 - 4,100,000</td><td>430,000 + 30% of excess over 3,200,000</td></tr>
+<tr><td>Above 4,100,000</td><td>700,000 + 35% of excess over 4,100,000</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+<footer>
+<div class="container">&copy; 2024 PakTax Pro. Not official financial advice.</div>
+</footer>
+<script>
+const calcAnnualTax=a=>{if(a<=600000)return 0;if(a<=1200000)return(a-600000)*.05;if(a<=2200000)return 30000+(a-1200000)*.15;if(a<=3200000)return 180000+(a-2200000)*.25;if(a<=4100000)return 430000+(a-3200000)*.3;return 700000+(a-4100000)*.35};
+const calcTax=a=>{const b=a*12,c=calcAnnualTax(b);let d="";return b<=600000?d="Up to 600k (0%)":b<=1200000?d="600k - 1.2M (5% of excess)":b<=2200000?d="1.2M - 2.2M (Fixed + 15%)":b<=3200000?d="2.2M - 3.2M (Fixed + 25%)":b<=4100000?d="3.2M - 4.1M (Fixed + 30%)":d="Above 4.1M (Fixed + 35%)",{monthlySalary:a,annualSalary:b,annualTax:c,monthlyTax:c/12,annualTakeHome:b-c,monthlyTakeHome:a-c/12,slabDescription:d}};
+const fmtCurrency=a=>new Intl.NumberFormat('en-PK',{style:'currency',currency:'PKR',minimumFractionDigits:0,maximumFractionDigits:0}).format(a);
+const fmtShort=a=>a>=1e6?(a/1e6).toFixed(1)+'M':a>=1e3?(a/1e3).toFixed(0)+'k':a;
+const renderGraph=(a,b)=>{const c=document.getElementById("chart-wrapper"),d=Math.max(3500000,a*1.4),e=calcAnnualTax(d)*1.2,f=800,g=400,h={top:40,right:40,bottom:40,left:60},i=f-h.left-h.right,j=g-h.top-h.bottom,k=l=>h.left+(l/d)*i,l=l=>h.top+j-(l/e)*j,m=[0,600000,1200000,2200000,3200000,4100000,d].filter(n=>n<=d);if(m[m.length-1]<d)m.push(d);let n=`M ${k(0)} ${l(0)}`;m.forEach(o=>{const p=calcAnnualTax(o);n+=` L ${k(o)} ${l(p)}`});const q=k(a),r=l(b);c.innerHTML=`<svg viewBox="0 0 ${f} ${g}" preserveAspectRatio="xMidYMid meet"><line x1="${h.left}" y1="${g-h.bottom}" x2="${f-h.right}" y2="${g-h.bottom}" class="axis-line"/><text x="${f-h.right}" y="${g-h.bottom+30}" text-anchor="end" class="axis-label">Annual Salary (PKR)</text><line x1="${h.left}" y1="${h.top}" x2="${h.left}" y2="${g-h.bottom}" class="axis-line"/><text x="${h.left}" y="${h.top-15}" text-anchor="start" class="axis-label">Annual Tax</text><text x="${h.left-10}" y="${g-h.bottom}" text-anchor="end" class="axis-label">0</text><text x="${h.left-10}" y="${h.top}" text-anchor="end" class="axis-label">${fmtShort(e/1.2)}</text><text x="${f-h.right}" y="${g-h.bottom+15}" text-anchor="middle" class="axis-label">${fmtShort(d)}</text><path d="${n}" class="tax-curve"/><line x1="${h.left}" y1="${r}" x2="${q}" y2="${r}" class="guide-line"/><line x1="${q}" y1="${g-h.bottom}" x2="${q}" y2="${r}" class="guide-line"/><circle cx="${q}" cy="${r}" class="user-point-bg"/><circle cx="${q}" cy="${r}" class="user-point"/><text x="${q+15}" y="${r-10}" class="user-label">You</text></svg>`};
+const form=document.getElementById("taxForm"),resetBtn=document.getElementById("resetBtn"),results=document.getElementById("results"),els={monthlyTakeHome:document.getElementById("res-monthly-takehome"),monthlyTax:document.getElementById("res-monthly-tax"),annualTax:document.getElementById("res-annual-tax"),annualSalary:document.getElementById("res-annual-salary"),annualTakeHome:document.getElementById("res-annual-takehome"),taxRate:document.getElementById("res-tax-rate"),slabInfo:document.getElementById("res-slab-info")};
+form.addEventListener("submit",e=>{e.preventDefault();const a=parseFloat(document.getElementById("salary").value);if(isNaN(a)||a<0)return;const b=calcTax(a);els.monthlyTakeHome.textContent=fmtCurrency(b.monthlyTakeHome);els.monthlyTax.textContent=fmtCurrency(b.monthlyTax);els.annualTax.textContent=fmtCurrency(b.annualTax);els.annualSalary.textContent=fmtCurrency(b.annualSalary);els.annualTakeHome.textContent=fmtCurrency(b.annualTakeHome);els.slabInfo.textContent=b.slabDescription;const c=b.annualSalary>0?((b.annualTax/b.annualSalary*100).toFixed(2)+"%"):"0%";els.taxRate.textContent=c;renderGraph(b.annualSalary,b.annualTax);results.classList.add("visible");resetBtn.style.display="inline-flex";});
+resetBtn.addEventListener("click",()=>{form.reset();results.classList.remove("visible");resetBtn.style.display="none";document.getElementById("chart-wrapper").innerHTML="";});
+</script>
+</body>
+</html>
