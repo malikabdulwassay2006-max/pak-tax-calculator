@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculate Your Tax (Pakistan) - FY 2025-26</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- PDF Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        /* --- Dark Mode Variables & Reset --- */
+        :root {
+            /* Default Theme (Salaried - Green) */
+            --primary: #10b981; /* Emerald 500 */
+            --primary-dark: #059669; /* Emerald 600 */
+            --primary-glow: rgba(16, 185, 129, 0.4);
+            --primary-bg-subtle: rgba(16, 185, 129, 0.1);
+
+            /* Dark Theme Palette */
+            --bg-body: #0f172a; /* Slate 900 */
+            --bg-card: #1e293b; /* Slate 800 */
+            --bg-input: #020617; /* Slate 950 */
+            
+            --text-main: #f1f5f9; /* Slate 100 */
+            --text-secondary: #94a3b8; /* Slate 400 */
+            --text-muted: #64748b; /* Slate 500 */
+            
+            --border: #334155; /* Slate 700 */
+            
+            --danger: #f43f5e; /* Rose 500 */
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+            
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-full: 9999px;
+        }
+
+        /* THEME VARIANTS FOR NEW MODULES */
+        body.theme-salaried { --primary: #10b981; --primary-dark: #059669; --primary-glow: rgba(16, 185, 129, 0.4); --primary-bg-subtle: rgba(16, 185, 129, 0.1); }
+        body.theme-freelancer { --primary: #d946ef; --primary-dark: #c026d3; --primary-glow: rgba(217, 70, 239, 0.4); --primary-bg-subtle: rgba(217, 70, 239, 0.1); }
+        body.theme-business { --primary: #3b82f6; --primary-dark: #2563eb; --primary-glow: rgba(59, 130, 246, 0.4); --primary-bg-subtle: rgba(59, 130, 246, 0.1); }
+        body.theme-sales { --primary: #f97316; --primary-dark: #ea580c; --primary-glow: rgba(249, 115, 22, 0.4); --primary-bg-subtle: rgba(249, 115, 22, 0.1); }
+        body.theme-property { --primary: #06b6d4; --primary-dark: #0891b2; --primary-glow: rgba(6, 182, 212, 0.4); --primary-bg-subtle: rgba(6, 182, 212, 0.1); }
+        body.theme-vehicle { --primary: #ec4899; --primary-dark: #db2777; --primary-glow: rgba(236, 72, 153, 0.4); --primary-bg-subtle: rgba(236, 72, 153, 0.1); }
+        body.theme-customs { --primary: #8b5cf6; --primary-dark: #7c3aed; --primary-glow: rgba(139, 92, 246, 0.4); --primary-bg-subtle: rgba(139, 92, 246, 0.1); }
+        body.theme-fed { --primary: #ef4444; --primary-dark: #dc2626; --primary-glow: rgba(239, 68, 68, 0.4); --primary-bg-subtle: rgba(239, 68, 68, 0.1); }
+        body.theme-wht { --primary: #eab308; --primary-dark: #ca8a04; --primary-glow: rgba(234, 179, 8, 0.4); --primary-bg-subtle: rgba(234, 179, 8, 0.1); }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* --- Layout --- */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            width: 100%;
+        }
+
+        /* --- Header --- */
+        header {
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid var(--border);
+            padding: 1.25rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(12px);
+        }
+
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
+        .brand { font-size: 1.25rem; font-weight: 700; color: var(--text-main); letter-spacing: -0.01em; display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+        .brand svg { color: var(--primary); transition: color 0.3s ease; }
+        
+        .nav-link { font-size: 0.9rem; color: var(--text-secondary); text-decoration: none; margin-left: 1rem; cursor: pointer; transition: color 0.2s; }
+        .nav-link:hover { color: var(--primary); }
+
+        /* --- Dashboard Grid --- */
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
+        .dash-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: all 0.2s; height: 100%; }
+        .dash-card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: var(--shadow-md); }
+        .dash-icon { font-size: 2rem; margin-bottom: 1rem; display: block; }
+        .dash-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--text-main); }
+        .dash-desc { font-size: 0.85rem; color: var(--text-secondary); }
+
+        /* --- Main --- */
+        main { padding-top: 2rem; padding-bottom: 4rem; flex: 1; }
+        .hero-text { text-align: center; margin-bottom: 2rem; }
+        .hero-text h2 { font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem; letter-spacing: -0.03em; background: linear-gradient(to right, #fff, #cbd5e1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-text p { color: var(--text-secondary); font-size: 1rem; }
+
+        /* --- Calculator Card --- */
+        .calc-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            margin-bottom: 3rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        /* Top Controls (Back + Filer Toggle) */
+        .top-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+        .back-btn { background: transparent; border: none; color: var(--text-secondary); font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: 0.2s; }
+        .back-btn:hover { color: var(--text-main); }
+        
+        /* Filer Toggle Switch */
+        .filer-switch { display: flex; background: var(--bg-input); padding: 4px; border-radius: 99px; border: 1px solid var(--border); }
+        .fs-opt { padding: 6px 16px; border-radius: 99px; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); transition: 0.2s; }
+        .fs-opt.active { background: var(--bg-card); color: var(--text-main); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        .fs-opt.active.f { color: var(--primary); }
+        .fs-opt.active.nf { color: var(--danger); }
+
+        /* Input Field */
+        .input-group { margin-bottom: 1.5rem; }
+        .label-text { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .input-wrapper { position: relative; }
+        .currency-icon { position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-weight: 600; pointer-events: none; }
+        
+        input[type="number"], select {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem; /* space for icon */
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            outline: none;
+            background: var(--bg-input);
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+            appearance: none;
+        }
+        select { padding-left: 1rem; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; }
+        
+        input[type="number"]:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-bg-subtle); }
+        
+        /* Action Button */
+        .btn-calculate, .btn-guide { width: 100%; background: var(--primary); color: #ffffff; font-size: 1.1rem; font-weight: 600; padding: 1rem; border: none; border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s; box-shadow: 0 0 20px var(--primary-glow); display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 2rem; }
+        .btn-calculate:hover, .btn-guide:hover { background: var(--primary-dark); transform: translateY(-1px); }
+        .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text-main); padding: 0.5rem 1rem; border-radius: var(--radius-md); cursor: pointer; font-size: 0.9rem; font-weight: 600; margin-top: 1rem; width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .btn-secondary:hover { border-color: var(--text-muted); }
+
+        /* --- Results Section --- */
+        .results-container { display: none; margin-top: 2rem; }
+        .results-container.active { display: block; animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .results-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem; margin-bottom: 3rem; }
+        
+        .res-card { background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between; grid-column: span 6; position: relative; overflow: hidden; }
+        @media (max-width: 768px) { .res-card { grid-column: span 12; } }
+
+        .res-card.hero { grid-column: span 12; background: linear-gradient(135deg, var(--primary-dark), var(--primary)); color: white; border: none; box-shadow: 0 10px 30px -10px var(--primary-glow); text-align: center; align-items: center; padding: 2.5rem 1.5rem; }
+        .hero .res-value { font-size: 3rem; font-weight: 800; color: white; line-height: 1.1; }
+        .hero .res-label { color: rgba(255,255,255,0.9); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 0.5rem; }
+        
+        .res-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-secondary); }
+        .res-value { font-size: 1.5rem; font-weight: 700; color: var(--text-main); word-break: break-word; }
+        
+        /* --- Chat Widget --- */
+        .chat-fab { position: fixed; bottom: 2rem; right: 2rem; width: 60px; height: 60px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; box-shadow: var(--shadow-lg); cursor: pointer; z-index: 100; transition: transform 0.2s; }
+        .chat-fab:hover { transform: scale(1.1); }
+        
+        .chat-window { position: fixed; bottom: 6rem; right: 2rem; width: 350px; height: 500px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); display: none; flex-direction: column; box-shadow: var(--shadow-lg); z-index: 100; overflow: hidden; animation: slideUp 0.3s ease; }
+        .chat-header { background: var(--bg-input); padding: 1rem; border-bottom: 1px solid var(--border); font-weight: 700; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); }
+        .chat-messages { flex: 1; padding: 1rem; overflow-y: auto; font-size: 0.9rem; display: flex; flex-direction: column; gap: 1rem; }
+        .chat-input-area { padding: 1rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem; background: var(--bg-input); }
+        
+        .msg { padding: 0.75rem 1rem; border-radius: 1rem; max-width: 85%; line-height: 1.4; }
+        .msg.user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 0.2rem; }
+        .msg.ai { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 0.2rem; }
+
+        /* Footer */
+        footer { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--border); background: var(--bg-input); margin-top: auto; }
+
+        /* Animations */
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="theme-salaried">
+
+    <header>
+        <div class="container header-content">
+            <div class="brand" onclick="loadView('dashboard')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                TaxPak 2025-26
+            </div>
+            <div style="display: flex;">
+                <a class="nav-link" onclick="loadView('dashboard')">Calculators</a>
+                <a class="nav-link" onclick="toggleChat()">Tax Assistant</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        
+        <!-- DASHBOARD VIEW -->
+        <div id="dashboard-view">
+            <div class="hero-text">
+                <h2>What would you like to calculate?</h2>
+                <p>Select a tax category to get started with FY 2025-26 rates.</p>
+            </div>
+            <div class="dashboard-grid" id="dash-grid">
+                <!-- Cards Injected via JS -->
+            </div>
+        </div>
+
+        <!-- CALCULATOR VIEW -->
+        <div id="calculator-view" style="display:none;">
+            <div class="calc-card">
+                <!-- Header & Controls -->
+                <div class="top-controls">
+                    <button class="back-btn" onclick="loadView('dashboard')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                        Back to Menu
+                    </button>
+                    
+                    <!-- Filer Toggle -->
+                    <div class="filer-switch">
+                        <div class="fs-opt active f" id="opt-filer" onclick="setFiler(true)">Filer</div>
+                        <div class="fs-opt nf" id="opt-nonfiler" onclick="setFiler(false)">Non-Filer</div>
+                    </div>
+                </div>
+
+                <div class="hero-text" style="margin-bottom: 1.5rem; text-align: left;">
+                    <h2 id="calc-title" style="font-size: 1.5rem; margin-bottom:0;">Title</h2>
+                    <p id="calc-desc" style="font-size: 0.9rem;">Description</p>
+                </div>
+
+                <form id="taxForm">
+                    <div id="inputs-container">
+                        <!-- Inputs Injected via JS -->
+                    </div>
+
+                    <button type="submit" class="btn-calculate">Calculate Tax</button>
+                </form>
+            </div>
+
+            <!-- RESULTS -->
+            <div id="results" class="results-container">
+                <div class="results-grid" id="res-grid">
+                    <!-- Results Injected via JS -->
+                </div>
+                
+                <div style="display:flex; justify-content:center; gap:1rem;">
+                    <button class="btn-secondary" onclick="exportPDF()">Download PDF Report</button>
+                </div>
+
+                <div class="disclaimer" style="margin-top:2rem;">
+                    <strong>Disclaimer:</strong> Calculations based on Finance Act 2025-26. Consult a tax advisor for official filings.
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Chat Widget -->
+    <div class="chat-fab" onclick="toggleChat()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+    </div>
+
+    <div class="chat-window" id="chat-window">
+        <div class="chat-header">
+            <span>Tax Smart Assistant</span>
+            <span style="cursor:pointer;" onclick="toggleChat()">×</span>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="msg ai">Hello! I am your offline tax assistant. Ask me about Filer rates, Property tax, or how to use this tool.</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Ask a question..." style="flex:1; background:var(--bg-body); border:none; color:white; outline:none;">
+            <button onclick="sendMessage()" style="background:var(--primary); border:none; color:white; padding:0.5rem; border-radius:0.5rem; cursor:pointer;">→</button>
+        </div>
+    </div>
+
+    <footer>&copy; 2025 TaxPak. All rights reserved. Not an official FBR service.</footer>
+
+<script>
+    // --- DATA & CONFIG ---
+    const MODULES = [
+        { id: 'salary', title: 'Salaried Income', desc: 'For individuals with salary > 75% of income.', icon: '💼', theme: 'theme-salaried' },
+        { id: 'business', title: 'Business & Corporate', desc: 'Sole Prop, AOP Partnership, and Companies.', icon: '🏭', theme: 'theme-business' },
+        { id: 'freelance', title: 'Freelancer / Export', desc: 'IT Exports (PSEB) & Local Services.', icon: '💻', theme: 'theme-freelancer' },
+        { id: 'sales', title: 'Sales Tax (GST)', desc: 'Goods (18%) and Provincial Services.', icon: '🧾', theme: 'theme-sales' },
+        { id: 'property', title: 'Real Estate', desc: 'CGT on Sale, WHT on Purchase & Transfer.', icon: '🏠', theme: 'theme-property' },
+        { id: 'vehicle', title: 'Vehicle Tax', desc: 'Registration, Token Tax & Luxury Tax.', icon: '🚗', theme: 'theme-vehicle' },
+        { id: 'customs', title: 'Customs Duty', desc: 'Import Duty, Regulatory Duty & Landed Cost.', icon: '🚢', theme: 'theme-customs' },
+        { id: 'fed', title: 'Excise Duty (FED)', desc: 'Cement, Beverages, Airlines, etc.', icon: '🥃', theme: 'theme-fed' },
+        { id: 'wht', title: 'Withholding Tax', desc: 'Quick lookup for Bank, Bill & Contract WHT.', icon: '💳', theme: 'theme-wht' }
+    ];
+
+    let state = {
+        module: 'salary',
+        isFiler: true,
+        inputs: {}
+    };
+
+    // --- INIT ---
+    document.addEventListener('DOMContentLoaded', () => {
+        loadState();
+        renderDashboard();
+        
+        if (state.view === 'calculator') {
+            loadCalculator(state.module);
+        } else {
+            loadView('dashboard');
+        }
+
+        // Chat Enter Key
+        document.getElementById('chat-input').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') sendMessage();
+        });
+    });
+
+    // --- NAVIGATION & VIEWS ---
+    function loadView(viewName) {
+        document.getElementById('dashboard-view').style.display = viewName === 'dashboard' ? 'block' : 'none';
+        document.getElementById('calculator-view').style.display = viewName === 'calculator' ? 'block' : 'none';
+        state.view = viewName;
+        if(viewName === 'dashboard') {
+            document.body.className = ''; // Reset theme
+            state.module = null;
+        }
+        saveState();
+    }
+
+    function renderDashboard() {
+        const grid = document.getElementById('dash-grid');
+        grid.innerHTML = MODULES.map(m => `
+            <div class="dash-card" onclick="loadCalculator('${m.id}')">
+                <span class="dash-icon">${m.icon}</span>
+                <div class="dash-title">${m.title}</div>
+                <div class="dash-desc">${m.desc}</div>
+            </div>
+        `).join('');
+    }
+
+    function loadCalculator(modId) {
+        const mod = MODULES.find(m => m.id === modId);
+        if(!mod) return;
+        
+        state.module = modId;
+        state.view = 'calculator';
+        saveState();
+
+        // Set UI
+        document.body.className = mod.theme;
+        document.getElementById('calc-title').innerText = mod.title;
+        document.getElementById('calc-desc').innerText = mod.desc;
+        document.getElementById('results').classList.remove('active');
+        
+        updateFilerUI();
+        renderInputs(modId);
+        loadView('calculator');
+    }
+
+    // --- INPUT RENDERING ---
+    function renderInputs(modId) {
+        const container = document.getElementById('inputs-container');
+        let html = '';
+
+        const makeInput = (id, label, ph, type='number') => `
+            <div class="input-group">
+                <label class="label-text">${label}</label>
+                <div class="input-wrapper">
+                    <span class="currency-icon">${type==='number'?'Rs.':''}</span>
+                    <input type="${type}" id="${id}" placeholder="${ph}" oninput="saveInput('${id}', this.value)">
+                </div>
+            </div>`;
+        
+        const makeSelect = (id, label, opts) => `
+            <div class="input-group">
+                <label class="label-text">${label}</label>
+                <div class="input-wrapper">
+                    <select id="${id}" onchange="saveInput('${id}', this.value)">
+                        ${opts.map(o => `<option value="${o.val}">${o.txt}</option>`).join('')}
+                    </select>
+                </div>
+            </div>`;
+
+        if (modId === 'salary') {
+            html = makeInput('sal_monthly', 'Monthly Gross Salary', 'e.g. 150000') + 
+                   makeInput('sal_bonus', 'Annual Bonus / Allowances', '0');
+        } else if (modId === 'business') {
+            html = makeSelect('biz_type', 'Entity Type', [
+                {val:'ind', txt:'Individual / Sole Proprietor'},
+                {val:'aop', txt:'AOP / Partnership'},
+                {val:'comp', txt:'Company (Pvt Ltd)'},
+                {val:'small', txt:'Small Company'}
+            ]) + makeInput('biz_profit', 'Annual Net Taxable Profit', 'e.g. 5000000');
+        } else if (modId === 'freelance') {
+            html = makeInput('free_inc', 'Annual Export Remittance', 'e.g. 3000000') + 
+                   makeSelect('free_pseb', 'PSEB Status', [{val:'yes', txt:'Registered (0.25%)'}, {val:'no', txt:'Unregistered (1%)'}]);
+        } else if (modId === 'sales') {
+            html = makeSelect('st_type', 'Category', [{val:'goods', txt:'Goods (GST)'}, {val:'services', txt:'Services (Provincial)'}]) +
+                   makeInput('st_val', 'Value of Supply', '0');
+        } else if (modId === 'property') {
+            html = makeSelect('prop_action', 'Action', [{val:'sale', txt:'Sale (CGT)'}, {val:'buy', txt:'Purchase (WHT)'}, {val:'transfer', txt:'Transfer Costs'}]) +
+                   makeInput('prop_val', 'Property Value', '0') +
+                   makeInput('prop_cost', 'Cost (For Sale only)', '0') +
+                   makeInput('prop_years', 'Holding Period (Years)', '0');
+        } else if (modId === 'vehicle') {
+            html = makeSelect('veh_type', 'Vehicle Type', [{val:'car', txt:'Car / Jeep'}, {val:'bike', txt:'Motorcycle'}]) +
+                   makeInput('veh_cc', 'Engine Capacity (CC)', 'e.g. 1800') +
+                   makeInput('veh_val', 'Invoice Value (For Luxury Tax)', '0');
+        } else if (modId === 'customs') {
+            html = makeInput('cust_cif', 'Import Value (CIF USD)', '1000') + 
+                   makeInput('cust_rate', 'Exchange Rate (PKR)', '278') +
+                   makeInput('cust_cd', 'Customs Duty %', '20') +
+                   makeInput('cust_rd', 'Regulatory Duty %', '0');
+        } else if (modId === 'fed') {
+            html = makeSelect('fed_cat', 'Category', [{val:'bev', txt:'Beverages (20%)'}, {val:'cement', txt:'Cement (Fixed)'}, {val:'telecom', txt:'Telecom (19.5%)'}]) +
+                   makeInput('fed_val', 'Value / Quantity', '0');
+        } else if (modId === 'wht') {
+            html = makeSelect('wht_cat', 'Transaction Type', [
+                {val:'supplies', txt:'Supply of Goods'}, {val:'services', txt:'Services'}, 
+                {val:'rent', txt:'Rent of Property'}, {val:'contracts', txt:'Contracts'},
+                {val:'cash', txt:'Cash Withdrawal'}, {val:'bank', txt:'Profit on Debt'}
+            ]) + makeInput('wht_val', 'Transaction Amount', '0');
+        }
+
+        container.innerHTML = html;
+        restoreInputs();
+    }
+
+    // --- LOGIC ---
+    document.getElementById('taxForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        calculate();
+    });
+
+    function calculate() {
+        const m = state.module;
+        let res = [];
+        let total = 0;
+        let label = "Total Liability";
+
+        const val = (id) => parseFloat(document.getElementById(id)?.value || 0);
+        const str = (id) => document.getElementById(id)?.value;
+
+        if (m === 'salary') {
+            const annual = (val('sal_monthly') * 12) + val('sal_bonus');
+            total = getSalaryTax(annual);
+            res = [
+                {l:'Annual Income', v:annual},
+                {l:'Monthly Tax', v:total/12},
+                {l:'Net Monthly Income', v: (annual-total)/12}
+            ];
+        } 
+        else if (m === 'business') {
+            const profit = val('biz_profit');
+            const type = str('biz_type');
+            if (type === 'comp') total = profit * 0.29;
+            else if (type === 'small') total = profit * 0.20;
+            else total = getBusinessIndTax(profit); // AOP/Ind
+            res = [{l:'Taxable Profit', v:profit}, {l:'Entity Type', v:type.toUpperCase()}];
+        }
+        else if (m === 'freelance') {
+            const inc = val('free_inc');
+            const rate = str('free_pseb') === 'yes' ? 0.0025 : 0.01;
+            total = inc * rate;
+            res = [{l:'Export Revenue', v:inc}, {l:'Rate Applied', v: (rate*100)+'%'}];
+        }
+        else if (m === 'property') {
+            const action = str('prop_action');
+            const v = val('prop_val');
+            if(action === 'buy') {
+                const rate = state.isFiler ? 0.03 : 0.105; // 236K
+                total = v * rate;
+                label = "Buyer WHT (236K)";
+            } else if (action === 'sale') {
+                // CGT
+                const gain = Math.max(0, v - val('prop_cost'));
+                // Simplified New Law: 15% filer, 45% non-filer
+                const cgtRate = state.isFiler ? 0.15 : 0.45; 
+                const cgt = gain * cgtRate;
+                const wht = v * (state.isFiler ? 0.03 : 0.10);
+                total = cgt + wht;
+                res = [{l:'Capital Gain', v:gain}, {l:'CGT', v:cgt}, {l:'Seller WHT', v:wht}];
+            } else {
+                // Transfer
+                total = v * 0.03; // approx stamp + cvt
+                label = "Est. Transfer Cost";
+            }
+        }
+        else if (m === 'vehicle') {
+            const cc = val('veh_cc');
+            const v = val('veh_val');
+            // WHT 231B
+            let wht = 20000; // dummy base
+            if(cc > 1000) wht = 50000; if(cc > 2000) wht = 200000;
+            if(!state.isFiler) wht *= 3;
+            total = wht;
+            // Luxury
+            if(cc >= 2000) {
+                const lux = v * 0.02; // approx
+                total += lux;
+                res.push({l:'Luxury Tax', v:lux});
+            }
+            label = "Total Vehicle Taxes";
+            res.push({l:'WHT (231B)', v:wht});
+        }
+        else if (m === 'wht') {
+            const cat = str('wht_cat');
+            const v = val('wht_val');
+            let rate = 0.15;
+            if(cat === 'supplies') rate = state.isFiler ? 0.05 : 0.10;
+            if(cat === 'services') rate = state.isFiler ? 0.03 : 0.06;
+            if(cat === 'rent') rate = state.isFiler ? 0.10 : 0.20;
+            if(cat === 'cash') rate = state.isFiler ? 0 : 0.006;
+            total = v * rate;
+            res = [{l:'Transaction Amount', v:v}, {l:'Rate', v:(rate*100).toFixed(2)+'%'}];
+        }
+        else if (m === 'sales') {
+             const v = val('st_val');
+             const type = str('st_type');
+             const rate = type === 'goods' ? 0.18 : 0.13; // SRB 13%
+             total = v * rate;
+             res = [{l:'Value', v:v}, {l:'Rate', v:(rate*100)+'%'}];
+        }
+        else if (m === 'customs') {
+            const cif = val('cust_cif') * val('cust_rate');
+            const cd = cif * (val('cust_cd')/100);
+            const rd = cif * (val('cust_rd')/100);
+            const st = (cif+cd+rd) * 0.18;
+            const wht = (cif+cd+rd+st) * (state.isFiler ? 0.06 : 0.12);
+            total = cd + rd + st + wht;
+            res = [{l:'Import Value (PKR)', v:cif}, {l:'Duties (CD+RD)', v:cd+rd}, {l:'Sales Tax', v:st}, {l:'WHT', v:wht}];
+            label = "Total Import Taxes";
+        }
+        else if (m === 'fed') {
+            const v = val('fed_val');
+            const cat = str('fed_cat');
+            if(cat === 'bev') total = v * 0.20;
+            if(cat === 'telecom') total = v * 0.195;
+            if(cat === 'cement') total = v * 4; // Fixed per kg logic
+        }
+
+        renderResults(total, label, res);
+    }
+
+    function getSalaryTax(a) {
+        if (a <= 600000) return 0;
+        if (a <= 1200000) return (a-600000)*0.05;
+        if (a <= 2200000) return 30000 + (a-1200000)*0.15;
+        if (a <= 3200000) return 180000 + (a-2200000)*0.25;
+        if (a <= 4100000) return 430000 + (a-3200000)*0.30;
+        return 700000 + (a-4100000)*0.35;
+    }
+    
+    function getBusinessIndTax(a) {
+        if (a <= 600000) return 0;
+        if (a <= 800000) return (a-600000)*0.075;
+        if (a <= 1200000) return 15000 + (a-800000)*0.15;
+        if (a <= 2400000) return 75000 + (a-1200000)*0.20;
+        if (a <= 3000000) return 315000 + (a-2400000)*0.25;
+        return 465000 + (a-3000000)*0.30;
+    }
+
+    function renderResults(total, label, rows) {
+        const grid = document.getElementById('res-grid');
+        grid.innerHTML = `
+            <div class="res-card hero">
+                <div class="res-label">${label}</div>
+                <div class="res-value">Rs ${Math.round(total).toLocaleString()}</div>
+                <div class="res-sub">FY 2025-26</div>
+            </div>
+            ${rows.map(r => `
+            <div class="res-card">
+                <div class="res-label">${r.l}</div>
+                <div class="res-value">${typeof r.v === 'number' ? Math.round(r.v).toLocaleString() : r.v}</div>
+            </div>`).join('')}
+        `;
+        document.getElementById('results').classList.add('active');
+    }
+
+    // --- HELPERS ---
+    function setFiler(isFiler) {
+        state.isFiler = isFiler;
+        updateFilerUI();
+        saveState();
+    }
+
+    function updateFilerUI() {
+        if (state.isFiler) {
+            document.getElementById('opt-filer').classList.add('active');
+            document.getElementById('opt-nonfiler').classList.remove('active');
+        } else {
+            document.getElementById('opt-filer').classList.remove('active');
+            document.getElementById('opt-nonfiler').classList.add('active');
+        }
+    }
+
+    function saveInput(id, val) {
+        state.inputs[id] = val;
+        saveState();
+    }
+
+    function restoreInputs() {
+        Object.keys(state.inputs).forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.value = state.inputs[id];
+        });
+    }
+
+    function saveState() {
+        localStorage.setItem('taxpak_state', JSON.stringify(state));
+    }
+
+    function loadState() {
+        const s = localStorage.getItem('taxpak_state');
+        if(s) state = {...state, ...JSON.parse(s)};
+    }
+
+    // --- CHAT & PDF ---
+    function toggleChat() {
+        const w = document.getElementById('chat-window');
+        w.style.display = w.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    function sendMessage() {
+        const inp = document.getElementById('chat-input');
+        const txt = inp.value.trim();
+        if(!txt) return;
+        
+        const area = document.getElementById('chat-messages');
+        area.innerHTML += `<div class="msg user">${txt}</div>`;
+        inp.value = '';
+        
+        // Simple offline logic
+        let resp = "I can help calculate tax. Try asking about 'Salary slabs' or 'Non-filer vehicle tax'.";
+        const t = txt.toLowerCase();
+        if(t.includes('filer')) resp = "Filers pay significantly lower WHT rates (e.g., 3% vs 10% on property).";
+        if(t.includes('salary')) resp = "Salary income below 600k is exempt. Above that, rates start from 5% up to 35%.";
+        if(t.includes('property')) resp = "New property law (July 2024): Filers pay flat 15% CGT. Non-filers pay up to 45%.";
+        if(t.includes('vehicle')) resp = "Non-filers pay 3x the WHT on vehicle registration (231B).";
+
+        setTimeout(() => {
+            area.innerHTML += `<div class="msg ai">${resp}</div>`;
+            area.scrollTop = area.scrollHeight;
+        }, 600);
+    }
+
+    function exportPDF() {
+        const { jsPDF } = window.jspdf;
+        const el = document.querySelector('.calc-card');
+        html2canvas(el).then(canvas => {
+            const img = canvas.toDataURL('image/png');
+            const pdf = new jsPDF();
+            const w = pdf.internal.pageSize.getWidth();
+            const h = (canvas.height * w) / canvas.width;
+            pdf.addImage(img, 'PNG', 0, 0, w, h);
+            pdf.save('Tax_Report.pdf');
+        });
+    }
+</script>
+</body>
+</html>
